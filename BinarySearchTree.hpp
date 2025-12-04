@@ -341,7 +341,8 @@ private:
   //          tree is 0.
   // NOTE:    This function must be tree recursive.
   static int size_impl(const Node *node) {
-
+    if(!node) {return 0;}
+    return size_impl(node->left) + size_impl(node->right) + 1;
   }
 
   // EFFECTS: Returns the height of the tree rooted at 'node', which is the
@@ -349,7 +350,9 @@ private:
   //          The height of an empty tree is 0.
   // NOTE:    This function must be tree recursive.
   static int height_impl(const Node *node) {
-    assert(false);
+    if(!node) {return 0;}
+
+    return 1 + std::max(height_impl(node->left), height_impl(node->right));
   }
 
   // EFFECTS: Creates and returns a pointer to the root of a new node structure
@@ -357,7 +360,12 @@ private:
   //          tree rooted at 'node'.
   // NOTE:    This function must be tree recursive.
   static Node *copy_nodes_impl(Node *node) {
-    assert(false);
+    if(!node) {
+      return nullptr;
+    }
+    
+    //pretty!
+    return new Node(node->datum, copy_nodes_impl(node->left),copy_nodes_impl(node->right));
   }
 
   // EFFECTS: Frees the memory for all nodes used in the tree rooted at 'node'.
@@ -384,7 +392,21 @@ private:
   //       Two elements A and B are equivalent if and only if A is
   //       not less than B and B is not less than A.
   static Node * find_impl(Node *node, const T &query, Compare less) {
+    if(!node) {return nullptr;}
 
+    bool val_less = less(query, node->datum);
+    bool val_greater = less(node->datum, query);
+
+    //val equals node
+    if(!val_less && !val_greater) {return node;}
+
+    //val is less than node 
+    if(val_less) {
+      return find_impl(node->left, query, less);
+    }
+
+    //at this point we know that val MUST be on the right
+    return find_impl(node->right, query, less);
   }
 
   // REQUIRES: item is not already contained in the tree rooted at 'node'
@@ -403,7 +425,12 @@ private:
   //       template, NOT according to the < operator. Use the "less"
   //       parameter to compare elements.
   static Node * insert_impl(Node *node, const T &item, Compare less) {
+    if(!node) {
+      return new Node(item, nullptr, nullptr);
+    }
 
+    assert(false); //do the rest of the function
+    return node;
   }
 
   // EFFECTS : Returns a pointer to the Node containing the minimum element
@@ -416,7 +443,7 @@ private:
   static Node * min_element_impl(Node *node) {
     if(!node) {return nullptr;} 
     if(node->left) {return min_element_impl(node->left);}
-    return node->datum;
+    return node;
   }
 
   // EFFECTS : Returns a pointer to the Node containing the maximum element
@@ -427,7 +454,7 @@ private:
   static Node * max_element_impl(Node *node) {
     if(!node) {return nullptr;} 
     if(node->right) {return max_element_impl(node->right);}
-    return node->datum;
+    return node;
   }
 
 
@@ -439,14 +466,10 @@ private:
     if(!node) {return true;}
 
     //make sure left < node ONLY IF left exists
-    if(node->left && !less(node->left, node)) {
-      return false;
-    }
+    if(node->left && !less(node->left->datum, node->datum)) {return false;}
 
     //make sure right < node ONLY IF right exists
-    if(node->right && !less(node, node->right)) {
-      return false;
-    }
+    if(node->right && !less(node->datum, node->right->datum)) {return false;}
 
     //alr we good
     return true;
@@ -461,7 +484,10 @@ private:
   //       See https://en.wikipedia.org/wiki/Tree_traversal#In-order
   //       for the definition of a in-order traversal.
   static void traverse_inorder_impl(const Node *node, std::ostream &os) {
-    assert(false);
+    if(!node) {return;}
+    traverse_inorder_impl(node->left, os);
+    os << node->datum << " ";
+    traverse_inorder_impl(node->right, os);
   }
 
   // EFFECTS : Traverses the tree rooted at 'node' using a pre-order traversal,
@@ -473,7 +499,12 @@ private:
   //       See https://en.wikipedia.org/wiki/Tree_traversal#Pre-order
   //       for the definition of a pre-order traversal.
   static void traverse_preorder_impl(const Node *node, std::ostream &os) {
-    assert(false);
+    if(!node) {return;}
+
+    os << node->datum;
+
+    traverse_preorder_impl(node->left, os);
+    traverse_preorder_impl(node->right, os);
   }
 
   // EFFECTS : Returns a pointer to the Node containing the smallest element
@@ -488,7 +519,18 @@ private:
   //       'less' parameter). Based on the result, you gain some information
   //       about where the element you're looking for could be.
   static Node * min_greater_than_impl(Node *node, const T &val, Compare less) {
-    assert(false);
+    if(!node) {return nullptr;}
+
+    //val is greater/equal to node, the node we're looking for must be on the right
+    if(!less(val, node->datum)) {
+      return min_greater_than_impl(node->right, val, less);
+    }
+
+    Node* other = min_greater_than_impl(node->left, val, less);
+    if(!other && less(other->datum, node->datum)) {
+      return other;
+    }
+    return node;
   }
 
 }; // END of BinarySearchTree class
