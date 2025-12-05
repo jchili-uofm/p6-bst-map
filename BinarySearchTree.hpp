@@ -428,9 +428,18 @@ private:
     if(!node) {
       return new Node(item, nullptr, nullptr);
     }
+    //put it in the left subtree
+    if(less(item, node->datum)) {
+      node->left = insert_impl(node->left, item, less);
+    }
+    //put it in the right subtree
+    if(less(node->datum, item)) {
+      node->left = insert_impl(node->left, item, less);
+    }
 
-    assert(false); //do the rest of the function
-    return node;
+    //this element is already in the tree, sound the alarm
+    std::cout << "insert_impl: element \"" << item << "already in tree";
+    assert(false);
   }
 
   // EFFECTS : Returns a pointer to the Node containing the minimum element
@@ -526,6 +535,7 @@ private:
       return min_greater_than_impl(node->right, val, less);
     }
 
+    //otherwise the node we're looking for must be on the left
     Node* other = min_greater_than_impl(node->left, val, less);
     if(!other && less(other->datum, node->datum)) {
       return other;
