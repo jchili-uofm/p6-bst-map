@@ -32,6 +32,10 @@ private:
 
   // A custom comparator
   class PairComp {
+    public:
+      bool operator()(Pair_type a, Pair_type b) {
+        return Key_compare(a.first, b.first);
+      }
   };
 
 public:
@@ -79,7 +83,7 @@ public:
   //       (key, value) pairs, you'll need to construct a dummy value
   //       using "Value_type()".
   Iterator find(const Key_type& k) const {
-    return data.find(k);
+    return data.find(Pair_type(k, Value_type()));
   }
 
   // MODIFIES: this
@@ -119,7 +123,11 @@ public:
   //           an iterator to the newly inserted element, along with
   //           the value true.
   std::pair<Iterator, bool> insert(const Pair_type &val) {
+    if(Iterator it = data.find(val) != data.end()) {
+      return std::pair<Iterator, bool>(it, false);
+    }
 
+    return std::pair<Iterator, bool>(data.insert(val), true);
   }
 
   // EFFECTS : Returns an iterator to the first key-value pair in this Map.
@@ -134,7 +142,7 @@ public:
 
 private:
   // Add a BinarySearchTree private member HERE.
-  BinarySearchTree data;
+  BinarySearchTree<Pair_type, PairComp> data;
 };
 
 // You may implement member functions below using an "out-of-line" definition
